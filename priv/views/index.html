@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <!-- <link rel="shortcut icon" href="/static/ico/favicon.ico"> -->
 
-    <title>Phoenix Chat Example</title>
+    <title>ZOMG a wild hand appears</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.css" rel="stylesheet">
@@ -42,25 +42,71 @@
     </div>
 
     <!-- Begin page content -->
-    <div id="messages" class="container">
-    </div>
-
-    <div id="footer">
-      <div class="container">
-        <div class="row">
-          <div class="col-sm-2">
-            <div class="input-group">
-              <span class="input-group-addon">@</span>
-              <input id="username" type="text" class="form-control" placeholder="username">
-            </div><!-- /input-group -->
-          </div><!-- /.col-lg-6 -->
-          <div class="col-sm-10">
-            <input id="message-input" class="form-control" />
-          </div><!-- /.col-lg-6 -->
-        </div><!-- /.row -->
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Hand</h3>
+          <table class="table table-bordered numeric">
+            <thead>
+              <tr>
+                <th colspan="3">Direction</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="hand-direction-0"></td>
+                <td id="hand-direction-1"></td>
+                <td id="hand-direction-2"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Index Finger</h3>
+          <table class="table table-bordered numeric">
+            <thead>
+              <tr>
+                <th></th>
+                <th colspan="3">Basis</th>
+                <th>Angle from previous joint</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Zeroth</th>
+                <td id="finger-1-bone-0-basis-0"></td>
+                <td id="finger-1-bone-0-basis-1"></td>
+                <td id="finger-1-bone-0-basis-2"></td>
+                <td colspan="3"></td>
+              </tr>
+              <tr>
+                <th>First</th>
+                <td id="finger-1-bone-1-basis-0"></td>
+                <td id="finger-1-bone-1-basis-1"></td>
+                <td id="finger-1-bone-1-basis-2"></td>
+                <td id="finger-1-bone-1-angle"></td>
+              </tr>
+              <tr>
+                <th>Second</th>
+                <td id="finger-1-bone-2-basis-0"></td>
+                <td id="finger-1-bone-2-basis-1"></td>
+                <td id="finger-1-bone-2-basis-2"></td>
+                <td id="finger-1-bone-2-angle"></td>
+              </tr>
+              <tr>
+                <th>Third</th>
+                <td id="finger-1-bone-3-basis-0"></td>
+                <td id="finger-1-bone-3-basis-1"></td>
+                <td id="finger-1-bone-3-basis-2"></td>
+                <td id="finger-1-bone-3-angle"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -73,6 +119,9 @@
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+  <script src="//js.leapmotion.com/leap-0.6.0.min.js"></script>
+  <script src="//js.leapmotion.com/leap-plugins-0.1.6.min.js"></script>
 
     <script type="text/javascript">
       $(function(){
@@ -111,10 +160,83 @@
             var username = sanitize(msg.username || "anonymous");
             $messages.append("<br/><i>[" + username + " entered]</i>");
           });
+
+      var degrees_per_radian = 57.295;
+
+      // First and second are three-element arrays representing vectors
+      // This is in radians
+      var angle = function(first, second){
+        var v1x = first[0];
+        var v1y = first[1];
+        var v1z = first[2];
+        var v2x = second[0];
+        var v2y = second[1];
+        var v2z = second[2];
+
+        // dot product
+        var dx = v1x * v2x;
+        var dy = v1y * v2y;
+        var dz = v1z * v2z;
+        var d = dx + dy + dz;
+
+        // magnitude
+        var m1 = Math.sqrt((v1x * v1x) + (v1y * v1y) + (v1z * v1z));
+        var m2 = Math.sqrt((v2x * v2x) + (v2y * v2y) + (v2z * v2z));
+
+        return Math.acos( d / (m1 * m2) );
+      };
+
+      var bone_angle = function(finger, index){
+        return angle(finger.bones[index-1].direction(), finger.bones[index].direction()) * degrees_per_radian;
+      };
+
+      var last_timestamp;
+      var update_frequency = 100000;
+
+      Leap.loop({}, function(frame) {
+          if(last_timestamp){
+            if(frame.timestamp - last_timestamp > update_frequency){
+              console.log('zomg');
+              last_timestamp = frame.timestamp;
+              frame.hands.forEach(function(hand, index) {
+                $("#hand-direction-0").text(hand.direction[0]);
+                $("#hand-direction-1").text(hand.direction[1]);
+                $("#hand-direction-2").text(hand.direction[2]);
+                $("#finger-1-bone-0-basis-0").text(hand.fingers[1].bones[0].basis[2][0]);
+                $("#finger-1-bone-0-basis-1").text(hand.fingers[1].bones[0].basis[2][1]);
+                $("#finger-1-bone-0-basis-2").text(hand.fingers[1].bones[0].basis[2][2]);
+                $("#finger-1-bone-1-basis-0").text(hand.fingers[1].bones[1].basis[2][0]);
+                $("#finger-1-bone-1-basis-1").text(hand.fingers[1].bones[1].basis[2][1]);
+                $("#finger-1-bone-1-basis-2").text(hand.fingers[1].bones[1].basis[2][2]);
+                $("#finger-1-bone-1-angle").text(bone_angle(hand.fingers[1], 1));
+                $("#finger-1-bone-2-basis-0").text(hand.fingers[1].bones[2].basis[2][0]);
+                $("#finger-1-bone-2-basis-1").text(hand.fingers[1].bones[2].basis[2][1]);
+                $("#finger-1-bone-2-basis-2").text(hand.fingers[1].bones[2].basis[2][2]);
+                $("#finger-1-bone-2-angle").text(bone_angle(hand.fingers[1], 2));
+                $("#finger-1-bone-3-basis-0").text(hand.fingers[1].bones[3].basis[2][0]);
+                $("#finger-1-bone-3-basis-1").text(hand.fingers[1].bones[3].basis[2][1]);
+                $("#finger-1-bone-3-basis-2").text(hand.fingers[1].bones[3].basis[2][2]);
+                $("#finger-1-bone-3-angle").text(bone_angle(hand.fingers[1], 3));
+                //console.log("index finger", hand.fingers[1]);
+                var boneDirection = hand.fingers[1].bones[1].direction();
+                //console.log("indexFinger first bone displacement", bone.displacement);
+
+                chan.send("rotation:hand", {x: hand.direction[0], y: hand.direction[1], z: hand.direction[2] });
+                chan.send("bone_directions:index_finger", {
+                  first: bone_angle(hand.fingers[1], 1),
+                  second: bone_angle(hand.fingers[1], 2),
+                  third: bone_angle(hand.fingers[1], 3),
+                });
+              });
+            }
+          } else {
+            last_timestamp = frame.timestamp;
+          }
+      }).use('screenPosition', {scale: 0.25});
         });
       });
-    </script>
 
+    </script>
   </body>
 </html>
 

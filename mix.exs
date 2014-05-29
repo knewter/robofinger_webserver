@@ -25,6 +25,8 @@ defmodule Chat.Mixfile do
       {:jazz, github: "meh/jazz"},
       {:phoenix, "0.2.4"},
       {:cowboy, github: "extend/cowboy", override: true, ref: "05024529679d1d0203b8dcd6e2932cc2a526d370"},
+      {:erlubi, github: "krestenkrab/erlubi"},
+      {:exroboarm, github: "knewter/exroboarm"}
     ]
   end
 end

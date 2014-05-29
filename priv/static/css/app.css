@@ -38,3 +38,9 @@ body > .container {
 code {
   font-size: 80%;
 }
+
+table.numeric td {
+  max-width: 80px;
+  width: 80px;
+  overflow: hidden;
+}

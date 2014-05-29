@@ -6,6 +6,8 @@ defmodule Chat.Supervisor do
   end
 
   def init([]) do
+    {:ok, client} = Exroboarm.Client.start("/dev/ttyUSB0")
+    Process.register client, :roboarm
     children = [
       # Define workers and child supervisors to be supervised
       # worker(Chat.Router, [])
